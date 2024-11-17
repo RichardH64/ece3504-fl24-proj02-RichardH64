@@ -1,3 +1,10 @@
+#######################################################################
+#  Filename     : binaryGCD.s
+#  Architecture : MIPS Assembly
+#  Author       : R. Harrison
+#  Description  : Assembly version of greated common denomiator solver
+#
+
 .globl main
 .data
 .text
