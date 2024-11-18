@@ -2,7 +2,7 @@
 //  Filename     : mips.v
 //  Module       : MIPS
 //  Author       : L. Nazhand-Ali
-//  Modified by  : C. Patterson
+//  Modified by  : C. Patterson, R. Harrison (18 Nov 2024)
 //  Description  : single cycle MIPS 
 //   
 //     The top module of the single cycle MIPS is presented in this
@@ -18,7 +18,30 @@ module MIPS(clk, reset);
    // instruction and PC related wires
    wire [31:0] instruction;
    wire [31:0] PCplus4;
-   wire [31:0] PC;
+   wire [31:0]    //===Added Modules (18 Nov 2024)===//
+   // instantiation of a 32-bit 2-bit left shifter used for shifting the branch offset for branch target address calculation
+   SHIFT2 shift2
+      (
+      .word_out(immShifted),
+      .word_in(immExtended)
+      );
+      
+   // instantiation of a 32-bit adder used for computing branch target
+   ADDER32 branchAdder
+     (
+      .result_out(branchPC),
+      .a_in(PCplus4), 
+      .b_in(immShifted)
+      );
+   
+   // instantiation of a 32-bit MUX used for selecting between PC+4 and branch address as the nextPC
+   MUX32_2X1 branchMux
+     (
+      .value_out(nextPC),
+      .value0_in(PCplus4), 
+      .value1_in(branchPC), 
+      .select_in(jump | branch)
+      );;
    
    // decoder related wires
    wire [5:0]  op, func;
@@ -46,8 +69,13 @@ module MIPS(clk, reset);
 
    ///////////////////////////////////////////////
    // Put your new wires below this line
-
-
+   wire [31:0] immShifted;
+   wire [31:0] targetShifted;
+   wire [31:0] branchAddr;
+   wire [31:0] jumpAddr;
+   wire [31:0] branchJump
+   wire [31:0] nextPC;
+   wire [31:0] finalPC;
    
    //////////////////////////////////////////////
    
@@ -73,13 +101,13 @@ module MIPS(clk, reset);
       .writeCntrl_in(regWrite)
       );
 
-   // instantiation of PC register
+   // instantiation of PC register //===Modified (18 Nov 2024)===//
    PC_REG pc_reg
      (
       .clk(clk),
       .reset(reset),
       .PC_out(PC),
-      .PC_in(PCplus4)
+      .PC_in(finalPC)
       );
 
    // instantiation of the decoder
@@ -156,5 +184,47 @@ module MIPS(clk, reset);
       .value1_in(rd),
       .select_in(regDst)
       );
+   
+   //===Added Modules (18 Nov 2024)===//
+   // instantiation of a 32-bit 2-bit shift left used for shifting the target for jump target address calculation
+   SHIFT2 jumpShift (
+       .word_out(targetShifted),
+       .word_in({6'b0, target_out})
+   );
 
+   // Concatenate upper 4 bits of PC+4 with shifted target
+   assign jumpAddr = {PCplus4[31:28], targetShifted[27:0]};
+   
+   // instantiation of a 32-bit 2-bit shift left used for shifting the branch offset for branch target address calculation
+   SHIFT2 immShift
+      (
+      .word_out(immShifted),
+      .word_in(immExtended)
+      );
+   
+   // instantiation of a 32-bit adder used for computing branch target
+   ADDER32 branchAdder
+     (
+      .result_out(branchPC),
+      .a_in(PCplus4), 
+      .b_in(immShifted)
+      );
+   
+   // instantiation of a 32-bit MUX used for selecting between PC+4 and branch address as the nextPC
+   MUX32_2X1 branchMux
+     (
+      .value_out(nextPC),
+      .value0_in(PCplus4), 
+      .value1_in(branchPC), 
+      .select_in(branch)
+      );
+   
+   // instantiation of a 32-bit MUX used for selecting between nextPC (PC+4 or branchAddr) and jumAddr as the finalPC
+   MUX32_2X1 jumpMux
+     (
+      .value_out(finalPC),
+      .value0_in(nextPC), 
+      .value1_in(jumpAddr), 
+      .select_in(jump)
+      );
 endmodule
