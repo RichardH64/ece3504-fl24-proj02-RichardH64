@@ -63,94 +63,200 @@ module MIPS_CONTROL
 
 	// The following case statement will look at opcode and func fields
 	casex({op_in, func_in})
-
-	  {6'h00, 6'h00}: // sll
-	    begin       
-	       regDst_out   = 1; //0 means RT  and 1 means RD
-	       ALUSrc_out   = 0; //0 means REG and 1 means IMM
-	       memToReg_out = 0; //0 means NO  and 1 means YES
-	       regWrite_out = 1; //0 means NO  and 1 means YES
-	       memWrite_out = 0; //0 means NO  and 1 means YES
-	       memRead_out  = 0; //0 means NO  and 1 means YES
-	       branch_out   = 0; //0 means NO  and 1 means YES
-	       jump_out     = 0; //0 means NO  and 1 means YES
-	       extCntrl_out = 0; //0 means Zero-extension and 1 means Sign-extension
-	       ALUCntrl_out = 4'b1000; //Refer to table on page 316 of the book
-	    end // case: {6'h00, 6'h00}
-
-	  // For addi instruction, 
-	  // opcode is 0x8 and func field is don't care
- 	  {6'h08, 6'hxx}: // addi
-	    begin
-	       regDst_out   = 0;
-	       ALUSrc_out   = 1;
-	       memToReg_out = 0;
-	       regWrite_out = 1;
-	       memWrite_out = 0;
-	       memRead_out  = 0;
-	       branch_out   = 0;
-	       jump_out     = 0;
-	       extCntrl_out = 1;
-	       ALUCntrl_out = 4'b0010;
-	    end // case: {6'h08, 6'hxx}
-
-	  {6'h0f, 6'hxx}: // lui
-             begin
-	       regDst_out   = 0;
-	       ALUSrc_out   = 1;
-	       memToReg_out = 0;
-	       regWrite_out = 1;
-	       memWrite_out = 0;
-	       memRead_out  = 0;
-	       branch_out   = 0;
-	       jump_out     = 0;
-	       extCntrl_out = 1'bx;
-	       ALUCntrl_out = 4'b1111; // Besides the operations on page 301, our ALU implements lui with this special code
-	    end // case: {6'h0f, 6'hxx}
-	  
-	  default:   //anything else
-	    begin		
-	       regDst_out   = 1'bx;
-               ALUSrc_out   = 1'bx;
-               memToReg_out = 1'bx;
-               regWrite_out = 1'bx;
-               memWrite_out = 1'bx;
-               branch_out   = 1'bx;
-               jump_out     = 1'bx;
-               extCntrl_out = 1'bx;
-               ALUCntrl_out = 4'bxxxx;
-	    end // case: default
-	  
+	{6'h00, 6'h00}: // sll
+	begin       
+		regDst_out   = 1; 		//0 means RT  and 1 means RD
+		ALUSrc_out   = 0; 		//0 means REG and 1 means IMM
+		memToReg_out = 0; 		//0 means NO  and 1 means YES
+		regWrite_out = 1; 		//0 means NO  and 1 means YES
+		memWrite_out = 0; 		//0 means NO  and 1 means YES
+		memRead_out  = 0; 		//0 means NO  and 1 means YES
+		branch_out   = 0; 		//0 means NO  and 1 means YES
+		jump_out     = 0; 		//0 means NO  and 1 means YES
+		extCntrl_out = 1'bx; 	//0 means Zero-extension and 1 means Sign-extension
+		ALUCntrl_out = 4'b1000; //Refer to table on page 316 of the book
+	end // case: {6'h00, 6'h00}
+	{6'h00, 6'h02}: // srl
+	begin
+		regDst_out   = 1;
+		ALUSrc_out   = 0;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 1'bx;
+		ALUCntrl_out = 4'b1001;
+	end // case : {6'h00, 6'h02}
+	{6'h00, 6'h22}: // sub
+	begin
+		regDst_out   = 1;    
+		ALUSrc_out   = 0;    
+		memToReg_out = 0;    
+		regWrite_out = 1;    
+		memWrite_out = 0;    
+		memRead_out  = 0;    
+		branch_out   = 0;    
+		jump_out     = 0;    
+		extCntrl_out = 1'bx; 	
+		ALUCntrl_out = 4'b0110;
+	end // case : {6'h00, 6'h22}
+	{6'h0A, 6'hxx}: // subi
+	begin
+		regDst_out   = 0;    
+		ALUSrc_out   = 1;    	
+		memToReg_out = 0;    	
+		regWrite_out = 1;    	
+		memWrite_out = 0;    	
+		memRead_out  = 0;    	
+		branch_out   = 0;    	
+		jump_out     = 0;    	
+		extCntrl_out = 1;    	
+		ALUCntrl_out = 4'b0110; 
+	end
+	{6'h00, 6'h2A}: // slt
+	begin
+		regDst_out   = 1;   	
+		ALUSrc_out   = 0;   	
+		memToReg_out = 0;   	
+		regWrite_out = 1;   	
+		memWrite_out = 0;   	
+		memRead_out  = 0;   	
+		branch_out   = 0;   	
+		jump_out     = 0;   	
+		extCntrl_out = 1'bx;	
+		ALUCntrl_out = 4'b0111;
+	end // case : {6'h00, 6'h2A}
+	{6'h00, 6'h25}: // or
+	begin
+		regDst_out   = 1;
+		ALUSrc_out   = 0;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 1'bx;
+		ALUCntrl_out = 4'b0001;
+	end // case : {6'h00, 6'h25}
+	{6'h0d, 6'hxx}: // ori
+	begin
+		regDst_out   = 0;
+		ALUSrc_out   = 1;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 0;    
+		ALUCntrl_out = 4'b0001; 
+	end
+	{6'h04, 6'hxx}: // beq
+	begin
+		regDst_out   = 1'bx; 
+		ALUSrc_out   = 0;    
+		memToReg_out = 1'bx; 
+		regWrite_out = 0;    
+		memWrite_out = 0;    
+		memRead_out  = 0;    
+		branch_out   = 1;    
+		jump_out     = 0;    
+		extCntrl_out = 1;    
+		ALUCntrl_out = 4'b0110;
+	end // case : {6'h04, 6'hxx}
+	{6'h05, 6'hxx}: // bne
+	begin
+		regDst_out   = 1'bx;
+		ALUSrc_out   = 0;
+		memToReg_out = 1'bx;
+		regWrite_out = 0;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 1;
+		jump_out     = 0;
+		extCntrl_out = 1;
+		ALUCntrl_out = 4'b0110;
+	end // case : {6'h05, 6'hxx}
+	{6'h00, 6'h20}: // add
+	begin
+		regDst_out   = 1;
+		ALUSrc_out   = 0;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 1'bx;
+		ALUCntrl_out = 4'b0010;
+	end // case : {6'h00, 6'h20}
+	{6'h08, 6'hxx}: // addi
+	begin
+		regDst_out   = 0;
+		ALUSrc_out   = 1;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 1;
+		ALUCntrl_out = 4'b0010;
+	end // case: {6'h08, 6'hxx}
+	{6'h00, 6'h24}: // and
+	begin
+		regDst_out   = 1;
+		ALUSrc_out   = 0;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 1'bx;
+		ALUCntrl_out = 4'b0000;
+	end
+	{6'h0c, 6'hxx}: // andi
+	begin
+		regDst_out   = 0;
+		ALUSrc_out   = 1;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 0;    
+		ALUCntrl_out = 4'b0000;
+	end // case : {6'h0c, 6'hxx}
+	{6'h0f, 6'hxx}: // lui
+	begin
+		regDst_out   = 0;
+		ALUSrc_out   = 1;
+		memToReg_out = 0;
+		regWrite_out = 1;
+		memWrite_out = 0;
+		memRead_out  = 0;
+		branch_out   = 0;
+		jump_out     = 0;
+		extCntrl_out = 1'bx;
+		ALUCntrl_out = 4'b1111; // Besides the operations on page 301, our ALU implements lui with this special code
+	end // case: {6'h0f, 6'hxx}
+	default:   //anything else
+	begin		
+		regDst_out   = 1'bx;
+		ALUSrc_out   = 1'bx;
+		memToReg_out = 1'bx;
+		regWrite_out = 1'bx;
+		memWrite_out = 1'bx;
+		branch_out   = 1'bx;
+		jump_out     = 1'bx;
+		extCntrl_out = 1'bx;
+		ALUCntrl_out = 4'bxxxx;
+	end // case: default
 	endcase // casex({op_in, func_in})
-	
-	
-     end // always@ *
-      
+	end // always@ *  
 endmodule // MIPS_CONTROL
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

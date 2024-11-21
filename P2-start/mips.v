@@ -2,7 +2,7 @@
 //  Filename     : mips.v
 //  Module       : MIPS
 //  Author       : L. Nazhand-Ali
-//  Modified by  : C. Patterson, R. Harrison (18 Nov 2024)
+//  Modified by  : C. Patterson, R. Harrison (20 Nov 2024)
 //  Description  : single cycle MIPS 
 //   
 //     The top module of the single cycle MIPS is presented in this
@@ -18,32 +18,9 @@ module MIPS(clk, reset);
    // instruction and PC related wires
    wire [31:0] instruction;
    wire [31:0] PCplus4;
-   wire [31:0]    //===Added Modules (18 Nov 2024)===//
-   // instantiation of a 32-bit 2-bit left shifter used for shifting the branch offset for branch target address calculation
-   SHIFT2 shift2
-      (
-      .word_out(immShifted),
-      .word_in(immExtended)
-      );
-      
-   // instantiation of a 32-bit adder used for computing branch target
-   ADDER32 branchAdder
-     (
-      .result_out(branchPC),
-      .a_in(PCplus4), 
-      .b_in(immShifted)
-      );
-   
-   // instantiation of a 32-bit MUX used for selecting between PC+4 and branch address as the nextPC
-   MUX32_2X1 branchMux
-     (
-      .value_out(nextPC),
-      .value0_in(PCplus4), 
-      .value1_in(branchPC), 
-      .select_in(jump | branch)
-      );;
-   
-   // decoder related wires
+   wire [31:0] PC;
+	
+	// decoder related wires
    wire [5:0]  op, func;
    wire [4:0]  rs, rt, rd, shft;
    wire [15:0] imm16;
@@ -76,9 +53,7 @@ module MIPS(clk, reset);
    wire [31:0] branchJump
    wire [31:0] nextPC;
    wire [31:0] finalPC;
-   
    //////////////////////////////////////////////
-   
 
    // instantiation of instruction memory
    IMEM	imem
@@ -86,7 +61,6 @@ module MIPS(clk, reset);
       .instruction_out(instruction),
       .address_in(PC)
       );
-
 
    // instantiation of register file
    REG_FILE reg_file
@@ -184,17 +158,8 @@ module MIPS(clk, reset);
       .value1_in(rd),
       .select_in(regDst)
       );
-   
-   //===Added Modules (18 Nov 2024)===//
-   // instantiation of a 32-bit 2-bit shift left used for shifting the target for jump target address calculation
-   SHIFT2 jumpShift (
-       .word_out(targetShifted),
-       .word_in({6'b0, target_out})
-   );
-
-   // Concatenate upper 4 bits of PC+4 with shifted target
-   assign jumpAddr = {PCplus4[31:28], targetShifted[27:0]};
-   
+   	
+   //===Added Modules (20 Nov 2024)===//   
    // instantiation of a 32-bit 2-bit shift left used for shifting the branch offset for branch target address calculation
    SHIFT2 immShift
       (
@@ -216,8 +181,17 @@ module MIPS(clk, reset);
       .value_out(nextPC),
       .value0_in(PCplus4), 
       .value1_in(branchPC), 
-      .select_in(branch)
+      .select_in(branch & zero)
       );
+	
+	// instantiation of a 32-bit 2-bit shift left used for shifting the target for jump target address calculation
+   SHIFT2 jumpShift (
+       .word_out(targetShifted),
+       .word_in({6'b0, target_out})
+   );
+		
+	// Concatenate upper 4 bits of PC+4 with shifted target
+   assign jumpAddr = {PCplus4[31:28], targetShifted[27:0]};
    
    // instantiation of a 32-bit MUX used for selecting between nextPC (PC+4 or branchAddr) and jumAddr as the finalPC
    MUX32_2X1 jumpMux
